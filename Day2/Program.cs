@@ -55,7 +55,8 @@ class Program
 
             }
 
-            if (gameIsPossible) {
+            if (gameIsPossible) 
+            {
                 gameIdSum += currentGameId;
             }
 
