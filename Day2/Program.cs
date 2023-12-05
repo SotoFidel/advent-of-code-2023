@@ -8,10 +8,11 @@ class Program
         int greenCubes = 13;
         int blueCubes = 14;
         int minRedCubesNeeded,minGreenCubesNeeded,minBlueCubesNeeded;
-        minRedCubesNeeded = minGreenCubesNeeded = minBlueCubesNeeded = 0;
+            minRedCubesNeeded = minGreenCubesNeeded = minBlueCubesNeeded = 0;
         int gameIdSum = 0;
         int currentGameId = -1;
         bool gameIsPossible;
+        int total = 0;
 
         StreamReader streamReader = new StreamReader("input.txt");
         string? line;
@@ -23,6 +24,7 @@ class Program
         {
 
             gameIsPossible = true;
+            minRedCubesNeeded = minGreenCubesNeeded = minBlueCubesNeeded = 0;
             
 
             // Game n: x blue, y red, z green; x blue, z green
@@ -39,12 +41,15 @@ class Program
                     {
                         case "red":
                             if (redCubes < int.Parse(game[0])) { gameIsPossible = false; }
+                            if (minRedCubesNeeded < int.Parse(game[0])) { minRedCubesNeeded = int.Parse(game[0]); }
                             break;
                         case "blue":
                             if (blueCubes < int.Parse(game[0])) { gameIsPossible = false; }
+                            if (minBlueCubesNeeded < int.Parse(game[0])) { minBlueCubesNeeded = int.Parse(game[0]); }
                             break;
                         case "green":
                             if (greenCubes < int.Parse(game[0])) { gameIsPossible = false; }
+                            if (minGreenCubesNeeded < int.Parse(game[0])) { minGreenCubesNeeded = int.Parse(game[0]); }
                             break;
                         default:
                             Console.WriteLine("Catastrophy");
@@ -54,6 +59,8 @@ class Program
 
 
             }
+            
+            total += minRedCubesNeeded * minGreenCubesNeeded * minBlueCubesNeeded;
 
             if (gameIsPossible) 
             {
@@ -62,7 +69,8 @@ class Program
 
         }
 
-        Console.WriteLine(gameIdSum);
+        Console.WriteLine("Sum of viable game IDs: " + gameIdSum);
+        Console.WriteLine("Sum of powwers of minimum cubes needed: " + total);
 
     }
 }
