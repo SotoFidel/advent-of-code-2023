@@ -1,4 +1,8 @@
-﻿namespace Day2;
+﻿/*
+    Integrates both part 1 and part 2 to the solution. 
+*/
+
+namespace Day2;
 
 class Program
 {
