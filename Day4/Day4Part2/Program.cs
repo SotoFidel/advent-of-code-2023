@@ -1,38 +1,51 @@
 ﻿namespace Day4Part2;
 
-class Card
-{
-    public int numberOfCopies { get; set; } = 0;
-}
-
 class Program
 {
     static void Main(string[] args)
     {
-        StreamReader file = new StreamReader(args[0]);
+        using StreamReader file = new(args[0]);
         string[] lines = file.ReadToEnd().Split('\n');
         string[] lineSplit;
-        List<string> left = new List<string>();
-        List<string> right = new List<string>();
-        Card[] copies = new Card[lines.Length];
 
-        for (int i = 0; i < lines.Length; i++)
+        List<string> left = new();
+        List<string> right = new();
+        
+        int[] copiesPerCard = new int[lines.Length];
+        
+        int totalScratchCards = lines.Length;
+        int currentTotalMatches = 0;
+
+        for(int i = 0; i < copiesPerCard.Length; i++)
         {
-            lines[i] = lines[i].Split(':')[1];
-            lineSplit = lines[i].Split('|');
-            left = lineSplit[0].Split(' ').ToList();
-            right = lineSplit[1].Split(' ').ToList();
-            left.RemoveAll(l => String.IsNullOrWhiteSpace(l));
-            right.RemoveAll(r => String.IsNullOrWhiteSpace(r));
-            for (int j = 0; j < left.Count; j++)
+            copiesPerCard[i] = 1;
+        }
+
+        for (int currentCardIndex = 0; currentCardIndex < lines.Length; currentCardIndex++)
+        {
+            lineSplit = lines[currentCardIndex].Split(':')[1].Trim().Split('|');
+            
+            left = lineSplit[0].Trim().Replace("  "," ").Split(' ').ToList();
+            right = lineSplit[1].Trim().Replace("  "," ").Split(' ').ToList();
+
+            for (int evalTimes = 0; evalTimes < copiesPerCard[currentCardIndex]; evalTimes++)
             {
-                left[j] = left[j].Trim();
-            }
-            for (int j = 0; j < right.Count; j++)
-            {
-                right[j] = right[j].Trim();
+                for(int rightNumberIndex = 0; rightNumberIndex < right.Count; rightNumberIndex++)
+                {
+                    if( left.Any(l => l == right[rightNumberIndex]) )
+                    {
+                        currentTotalMatches++;
+                        copiesPerCard[currentCardIndex + currentTotalMatches]++;
+                        totalScratchCards++;
+                    }
+                }
+
+                currentTotalMatches = 0;
             }
 
         }
+
+        Console.WriteLine(totalScratchCards);
+
     }
 }
