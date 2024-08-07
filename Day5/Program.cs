@@ -113,41 +113,84 @@ class Program
             seedRanges.Add((long.Parse(seedLine[i]),long.Parse(seedLine[i+1])));
         }
 
-        Dictionary<string,List<Mapping>> mappings = ConstructDictionary(lines).Reverse().ToDictionary();
-        List<Mapping> locations = mappings["humidity-to-location"];
-        mappings.Remove("humidity-to-location");
+        Dictionary<string,List<Mapping>> mappings = ConstructDictionary(lines);
 
-        long min = 0;
-        bool seedFound = false;
-        long currentMapping;
-        for(long i = 0;; i++)
+        long? min = null;
+        string phase;
+        List<int> processedIndeces = new();
+
+        foreach(KeyValuePair<string,List<Mapping>> seedMappings in mappings)
         {
-            currentMapping = i;
-            foreach(KeyValuePair<string,List<Mapping>> seedMappings in mappings)
+
+            processedIndeces.Clear();
+            phase = seedMappings.Key;
+            foreach(Mapping step in seedMappings.Value)
             {
-                foreach(Mapping step in seedMappings.Value)
+
+                for(int i = 0; i < seedRanges.Count; i++)
                 {
-                    if(isBetween(currentMapping,step.Destination,step.Destination + step.Range - 1))
+                    if(processedIndeces.Contains(i))
                     {
-                        currentMapping = step.Source + Math.Abs(currentMapping - step.Destination);
-                        break;
+                        continue;
+                    }
+
+                    // This seed range is inside the range step
+                    if(seedRanges[i].seedValue >= step.Source 
+                        && seedRanges[i].seedValue + seedRanges[i].seedRange - 1 <= step.Source + step.Range - 1)
+                    {
+                        processedIndeces.Add(i);
+                        (long seedValue,long seedRange) temp = seedRanges[i];
+                        temp.seedValue = step.Destination + Math.Abs(temp.seedValue - step.Source);
+                        seedRanges[i] = temp;
+                    }
+                    else if(seedRanges[i].seedValue >= step.Source
+                            && seedRanges[i].seedValue <= step.Source + step.Range - 1)
+                    {
+                        processedIndeces.Add(i);
+                        (long seedValue,long seedRange) rightRange = (step.Source + step.Range, (seedRanges[i].seedValue + seedRanges[i].seedRange) - (step.Source + step.Range));
+                        (long seedValue,long seedRange) leftRange = (step.Destination + seedRanges[i].seedValue - step.Source,rightRange.seedValue - seedRanges[i].seedValue);
+                        seedRanges[i] = leftRange;
+                        seedRanges.Add(rightRange);
+                    }
+                    else if(seedRanges[i].seedValue + seedRanges[i].seedRange - 1 <= step.Source + step.Range - 1
+                            && seedRanges[i].seedValue + seedRanges[i].seedRange - 1 >= step.Source)
+                    {
+                        processedIndeces.Add(i);
+                        (long seedValue,long seedRange) leftRange = (seedRanges[i].seedValue,step.Source - seedRanges[i].seedValue);
+                        (long seedValue,long seedRange) rightRange = (step.Destination,Math.Abs( (seedRanges[i].seedValue + seedRanges[i].seedRange) - step.Source));
+                        seedRanges[i] = rightRange;
+                        seedRanges.Add(leftRange);
+                    }
+                    else if(seedRanges[i].seedValue < step.Source && 
+                            seedRanges[i].seedValue + seedRanges[i].seedRange - 1 > step.Source + step.Range - 1) 
+                    {
+                        processedIndeces.Add(i);
+                        (long seedValue,long seedRange) leftRange;
+                        (long seedValue,long seedRange) middleRange;
+                        (long seedValue,long seedRange) rightRange;
+
+                        leftRange = (seedRanges[i].seedValue,step.Source - seedRanges[i].seedValue);
+                        rightRange = (step.Source + step.Range,(seedRanges[i].seedValue + seedRanges[i].seedRange)-(step.Source+step.Range));
+                        middleRange = (step.Destination,step.Range);
+
+                        seedRanges[i] = middleRange;
+                        seedRanges.Add(leftRange);
+                        seedRanges.Add(rightRange);
                     }
                 }
             }
-
-            for(int j = 0; j < seedRanges.Count; j++)
-            {
-                if(isBetween(currentMapping,seedRanges[j].seedValue,seedRanges[j].seedValue + seedRanges[j].seedRange - 1))
-                {
-                    seedFound = true;
-                    break;
-                }
-            }
-
-            if (seedFound) {min = i; break;}
         }
 
-        Console.WriteLine("Min: " + min);
+        min = seedRanges[0].seedValue;
+        for(int i = 1; i < seedRanges.Count; i++)
+        {
+            if(min > seedRanges[i].seedValue)
+            {
+                min = seedRanges[i].seedValue;
+            }
+        }
+
+        Console.WriteLine("min: " + min);
 
         return;
     }
