@@ -53,7 +53,7 @@ class Program
         List<string> lines = streamReader.ReadToEnd().Split('\n').ToList();
         streamReader.Close();
 
-        List<long> seedsToPlant = new();
+        List<long> seedsToPlant = [];
         List<string> seedsInput = lines[0].Split(' ').ToList();
         seedsInput.RemoveAt(0);
         foreach(string numString in seedsInput)
@@ -104,55 +104,50 @@ class Program
         List<string> lines = ioResult.Item1!.ReadToEnd().Split('\n').ToList();
         ioResult.Item1.Close();
 
-        Dictionary<string,List<Mapping>> mappings = ConstructDictionary(lines);
-
         List<(long seedValue, long seedRange)> seedRanges = new();
         List<string> seedLine = lines[0].Split(' ').ToList();
         seedLine.RemoveAt(0);
-        List<long> seeds = new();
-        long? min = null;
 
         for(int i = 0; i < seedLine.Count - 1; i+=2)
         {
             seedRanges.Add((long.Parse(seedLine[i]),long.Parse(seedLine[i+1])));
         }
 
-        for(int i = 0; i < seedRanges.Count; i++)
-        {
-            seeds.Clear();
-            for(int j = 0; j < seedRanges[i].seedRange; j++)
-            {
-                seeds.Add(seedRanges[i].seedValue + j);
-            }
+        Dictionary<string,List<Mapping>> mappings = ConstructDictionary(lines).Reverse().ToDictionary();
+        List<Mapping> locations = mappings["humidity-to-location"];
+        mappings.Remove("humidity-to-location");
 
-            for(int j = 0; j < seeds.Count; j++)
+        long min = 0;
+        bool seedFound = false;
+        long currentMapping;
+        for(long i = 0;; i++)
+        {
+            currentMapping = i;
+            foreach(KeyValuePair<string,List<Mapping>> seedMappings in mappings)
             {
-                foreach(KeyValuePair<string,List<Mapping>> seedMappings in mappings)
+                foreach(Mapping step in seedMappings.Value)
                 {
-                    foreach(Mapping step in seedMappings.Value)
+                    if(isBetween(currentMapping,step.Destination,step.Destination + step.Range - 1))
                     {
-                        if(isBetween(seeds[j],step.Source,step.Source + step.Range -1))
-                        {
-                            seeds[j] = step.Destination + Math.Abs(seeds[j] - step.Source);
-                            break;
-                        }
+                        currentMapping = step.Source + Math.Abs(currentMapping - step.Destination);
+                        break;
                     }
                 }
             }
 
-            min = min == null ? seeds[0] : min;
-            for(int j = 0; j < seeds.Count; j++)
+            for(int j = 0; j < seedRanges.Count; j++)
             {
-                if(min >= seeds[j])
+                if(isBetween(currentMapping,seedRanges[j].seedValue,seedRanges[j].seedValue + seedRanges[j].seedRange - 1))
                 {
-                    min = seeds[j];
+                    seedFound = true;
+                    break;
                 }
             }
 
+            if (seedFound) {min = i; break;}
         }
 
         Console.WriteLine("Min: " + min);
-
 
         return;
     }
