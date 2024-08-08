@@ -34,19 +34,22 @@ class Program
 
     static void Part1(string fileName)
     {
-        (StreamReader? streamReader,Exception? exception) ioResult = OpenFile(fileName);
-        if (ioResult.exception != null)
+        (StreamReader? streamReader,Exception? exception) = OpenFile(fileName);
+        if (exception != null)
         {
-            Console.WriteLine(GetFullError(ioResult.exception));
+            Console.WriteLine(GetFullError(exception));
             return;
         }
 
-        int[][] lines = ioResult.streamReader!.ReadToEnd().Split('\n').Select(r => {
-            List<string> record = r.Split(' ').ToList();
-            record.RemoveAt(0);
-            record.RemoveAll(e => string.IsNullOrEmpty(e));
-            return record.Select(rc => int.Parse(rc)).ToArray();
-            }).ToArray();
+        int[][] lines = streamReader!
+                        .ReadToEnd()
+                        .Split('\n')
+                        .Select(r =>
+                                r.Split(' ')[1..]
+                                .Where(l => !string.IsNullOrEmpty(l))
+                                .Select(rc => int.Parse(rc))
+                                .ToArray()
+                            ).ToArray();
 
         List<Race> races = [];
         for(int i = 0; i < lines[0].Length; i++)
@@ -70,7 +73,7 @@ class Program
                 }
             }
 
-            result *= waysToWin;
+            result *= waysToWin > 0 ? waysToWin : 1;
         }
 
         Console.WriteLine("Product of ways to win per race: " + result);
@@ -80,20 +83,19 @@ class Program
 
     static void Part2(string fileName)
     {
-        (StreamReader? streamReader,Exception? exception) ioResult = OpenFile(fileName);
-        if (ioResult.exception != null)
+        (StreamReader? streamReader,Exception? exception) = OpenFile(fileName);
+        if (exception != null)
         {
-            Console.WriteLine(GetFullError(ioResult.exception));
+            Console.WriteLine(GetFullError(exception));
             return;
         }
 
-        long[] lines = ioResult.streamReader!.ReadToEnd().Split('\n').Select(r => {
-            List<string> record = r.Split(' ').ToList();
-            record.RemoveAt(0);
-            record.RemoveAll(e => string.IsNullOrEmpty(e));
-            return long.Parse(string.Join(null,record));
-            }).ToArray();
-
+        long[] lines =  streamReader!
+                        .ReadToEnd()
+                        .Split('\n')
+                        .Select(r =>
+                                long.Parse(string.Join(null,r.Split(' ')[1..].Where(l => !string.IsNullOrEmpty(l))))            
+                        ).ToArray();
         Race race = new(lines[0],lines[1]);
 
         long waysToWin = 0;
@@ -111,16 +113,16 @@ class Program
         Console.WriteLine("Total ways to win: " + waysToWin);
     }
 
-    static (StreamReader? streamReader, Exception? exception) OpenFile(string fileName)
+    static Tuple<StreamReader?,Exception?> OpenFile(string fileName)
     {
         try
         {
             StreamReader streamReader = new StreamReader(fileName);
-            return (streamReader, null);
+            return new (streamReader, null);
         }
         catch (Exception e)
         {
-            return (null, e);
+            return new (null, e);
         }
     }
 
