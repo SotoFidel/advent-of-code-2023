@@ -168,10 +168,6 @@ class Program
             streamReader!.ReadToEnd().Split('\n')
             .Select(line => {
                 string[] elements = line.Split(' ');
-                if(elements[0].Length < 5)
-                {
-                    throw new Exception("ahhh");
-                }
                 return new Hand(elements[0],int.Parse(elements[1]));
             })
             .ToList()
@@ -231,17 +227,18 @@ class Program
                     }
                 }
 
+                int numOfJs = hand.Cards.Where(c => c == 'J').Count();
                 switch(numPairs)
                 {
                     case 2:
-                        if (hand.Cards.Where(c => c == 'J').Count() == 2)
+                        if (numOfJs == 2)
                         {
                             // One of the Pairs was JJ. We can replace those
                             // and promote to 4 of a kind, which will combine with
                             // the other pair of characters
                             hand.HandType = 5;
                         }
-                        else if (hand.Cards.Where(c => c == 'J').Count() == 1)
+                        else if (numOfJs == 1)
                         {
                             // TTAAJ => TTAAA or TTAAT. Full house in any case
                             hand.HandType = 4;
@@ -252,7 +249,7 @@ class Program
                         }
                         break;
                     case 1:
-                        if(hand.Cards.Where(c => c == 'J').Count() == 2 || hand.Cards.Where(c => c == 'J').Count() == 1)
+                        if(numOfJs == 2 || numOfJs == 1)
                         {
                             hand.HandType = 3;
                         }
@@ -262,14 +259,12 @@ class Program
                         }
                         break;
                     case 0:
-                        if(hand.Cards.Contains('J'))
+                        if(numOfJs > 0)
                         {
                             numPairs++;
                         }
                         hand.HandType = numPairs;
                         break;
-                    default:
-                        throw new Exception("aaaaahhh");
                 }
 
                 return hand.HandType;
