@@ -1,6 +1,4 @@
-﻿using System.Reflection.Metadata;
-
-class Program
+﻿class Program
 {
     static void Main(string[] args)
     {
@@ -71,6 +69,58 @@ class Program
 
     static void Part2(string fileName)
     {
+
+
+        (StreamReader? streamReader,Exception? exception) = OpenFile(fileName);
+        
+        if(exception != null)
+        {
+            Console.WriteLine(GetFullError(exception));
+        }
+
+        List<string>lines = streamReader!.ReadToEnd().Split("\r\n")
+                            .Where(l => !string.IsNullOrWhiteSpace(l)).ToList();
+
+        int[] LRList = lines[0].Select(c => c == 'L' ? 0 : 1).ToArray();
+        lines.RemoveAt(0);
+        Dictionary<string,string[]> map = [];
+
+        string[] s;
+        List<string> positions = [];
+        List<long> stepsPerPosition = [];
+        int lrIndex;
+        for(int line = 0; line < lines.Count; line++)
+        {
+            s = lines[line].Replace("(","").Replace(")","").Replace(" ","").Split(['=',',']);
+
+            map.Add(s[0],[s[1],s[2]]);
+
+            if(s[0].EndsWith('A'))
+            {
+                positions.Add(s[0]);
+                stepsPerPosition.Add(0);
+            }
+        }
+
+        for(int i = 0; i < positions.Count; i++)
+        {
+            lrIndex = 0;
+            while(!positions[i].EndsWith('Z'))
+            {
+                positions[i] = map[positions[i]][LRList[lrIndex]];
+                lrIndex++;
+                stepsPerPosition[i]++;
+                if (lrIndex == LRList.Length)
+                {
+                    lrIndex = 0;
+                }
+            }
+
+            Console.WriteLine("Steps: " + stepsPerPosition[i]);
+        }
+
+        Console.WriteLine("Result: " + LeastCommonMultiple(stepsPerPosition));
+
         return;
     }
 
@@ -94,4 +144,13 @@ class Program
                 ? ex.Message
                 : ex.Message + " --> " + GetFullError(ex.InnerException);
     }
+
+    static long LeastCommonMultiple(List<long> numbers) =>
+        numbers.Count == 0 ? 0 : numbers.Aggregate(ComputeLeastCommonMultiple);
+
+    static long ComputeLeastCommonMultiple(long a, long b) =>
+        a * b / GreatestCommonDivisor(a,b);
+
+    static long GreatestCommonDivisor(long a, long b) =>
+        b == 0 ? a : GreatestCommonDivisor(b, a % b);
 }
