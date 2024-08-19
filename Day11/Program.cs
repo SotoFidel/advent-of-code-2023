@@ -4,7 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 
-
+/*
+    The weird thing about this one is that part2 could be applied
+    to part 1 and I can save on some code, but I think I'll 
+    keep the solutions separate to have an appreication for
+    how these problems can be approached in a variety of angles.
+*/
 class Program
 {
 
